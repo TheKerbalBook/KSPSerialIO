@@ -129,22 +129,22 @@ namespace KSPSerialIO
 
     enum enumAG : int
     {
-        SAS,
-        RCS,
-        Light,
-        Gear,
-        Brakes,
-        Abort,
-        Custom01,
-        Custom02,
-        Custom03,
-        Custom04,
-        Custom05,
-        Custom06,
-        Custom07,
-        Custom08,
-        Custom09,
-        Custom10,
+        SAS, 
+        RCS,        
+        Light, 
+        Gear, 
+        Brakes, 
+        Abort, 
+        Custom01, 
+        Custom02, 
+        Custom03, 
+        Custom04, 
+        Custom05, 
+        Custom06, 
+        Custom07, 
+        Custom08, 
+        Custom09, 
+        Custom10, 
     };
 
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
@@ -178,24 +178,24 @@ namespace KSPSerialIO
             //cfg["refresh"] = 0.08;
             //cfg["DefaultPort"] = "COM1";
             //cfg["HandshakeDelay"] = 2500;
-            print ("KSPSerialIO: Loading settings...");
+            print("KSPSerialIO: Loading settings...");
 
-            cfg.load ();
-            DefaultPort = cfg.GetValue<string> ("DefaultPort", "/dev/tty.usbserial");
-            print ("KSPSerialIO: Default Port = " + DefaultPort);
+            cfg.load();
+            DefaultPort = cfg.GetValue<string>("DefaultPort", "/dev/tty.usbserial");
+            print("KSPSerialIO: Default Port = " + DefaultPort);
 
-            refreshrate = cfg.GetValue<double> ("refresh");
-            print ("KSPSerialIO: Refreshrate = " + refreshrate.ToString ());
+            refreshrate = cfg.GetValue<double>("refresh");
+            print("KSPSerialIO: Refreshrate = " + refreshrate.ToString());
 
-            BaudRate = cfg.GetValue<int> ("BaudRate", 38400);
-            print ("KSPSerialIO: BaudRate = " + BaudRate.ToString ());
+            BaudRate = cfg.GetValue<int>("BaudRate", 38400);
+            print("KSPSerialIO: BaudRate = " + BaudRate.ToString());
 
             // disable the scanning for if you absolutly know the port!
-            NoDetect = cfg.GetValue<bool> ("NoDetect", true);
-            print ("KSPSerialIO: NoDetect = " + NoDetect.ToString ());
+            NoDetect = cfg.GetValue<bool>("NoDetect", true);
+            print("KSPSerialIO: NoDetect = " + NoDetect.ToString());
 
             HandshakeDelay = cfg.GetValue<int> ("HandshakeDelay", 200);
-            print ("KSPSerialIO: Handshake Delay = " + HandshakeDelay.ToString ());
+            print("KSPSerialIO: Handshake Delay = " + HandshakeDelay.ToString());
 
             PitchEnable = cfg.GetValue<int>("PitchEnable");
             print("KSPSerialIO: Pitch Enable = " + PitchEnable.ToString());
@@ -229,7 +229,7 @@ namespace KSPSerialIO
         }
     }
 
-    [KSPAddon (KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KSPSerialPort : MonoBehaviour
     {
         public static SerialPort Port = new SerialPort ();
@@ -241,8 +241,8 @@ namespace KSPSerialIO
         public static ControlPacket CPacket;
         private static HandShakePacket HPacket;
 
-        public static VesselControls VControls = new VesselControls ();
-        public static VesselControls VControlsOld = new VesselControls ();
+        public static VesselControls VControls = new VesselControls();
+        public static VesselControls VControlsOld = new VesselControls();
 
         private static byte[] buffer = new byte[255];
         private static byte rx_len;
@@ -253,9 +253,9 @@ namespace KSPSerialIO
         private const byte HSPid = 0, VDid = 1, Cid = 101; //hard coded values for packet IDS
 
 
-        public static void sendPacket (object anything)
+        public static void sendPacket(object anything)
         {
-            byte[] Payload = StructureToByteArray (anything);
+            byte[] Payload = StructureToByteArray(anything);
             byte header1 = 0xBE;
             byte header2 = 0xEF;
             byte size = (byte)Payload.Length;
@@ -267,71 +267,71 @@ namespace KSPSerialIO
             //Header = [Header1=0xBE][Header2=0xEF]
             //size = [payload.length (0-255)]
 
-            for (int i = 0; i < size; i++) 
+            for (int i = 0; i < size; i++)
             {
-                checksum ^= Payload [i];
+                checksum ^= Payload[i];
             }
 
-            Payload.CopyTo (Packet, 3);
-            Packet [0] = header1;
-            Packet [1] = header2;
-            Packet [2] = size;
-            Packet [Packet.Length - 1] = checksum;
+            Payload.CopyTo(Packet, 3);
+            Packet[0] = header1;
+            Packet[1] = header2;
+            Packet[2] = size;
+            Packet[Packet.Length - 1] = checksum;
 
-            Port.Write (Packet, 0, Packet.Length);
+            Port.Write(Packet, 0, Packet.Length);
         }
 
-        private void Begin ()
+        private void Begin()
         {
             if (SettingsNStuff.NoDetect) {
-                Debug.Log ("KSPSerialIO: setting port to the default");
+                Debug.Log("KSPSerialIO: setting port to the default");
                 PortNumber = SettingsNStuff.DefaultPort;
-                Debug.Log ("KSPSerialIO: PortNumber: " + PortNumber);
+                Debug.Log("KSPSerialIO: PortNumber: " + PortNumber);
                 Port.PortName = PortNumber;
             }
 
-            Debug.Log ("KSPSerialIO: Baud: " + SettingsNStuff.BaudRate);
+            Debug.Log("KSPSerialIO: Baud: " + SettingsNStuff.BaudRate);
             Port.BaudRate = SettingsNStuff.BaudRate;
-            Debug.Log ("KSPSerialIO: Parity None");
+            Debug.Log("KSPSerialIO: Parity None");
             Port.Parity = Parity.None;
-            Debug.Log ("KSPSerialIO: DataBits 8");
+            Debug.Log("KSPSerialIO: DataBits 8");
             Port.DataBits = 8;
-            Debug.Log ("KSPSerialIO: StopBits One");
+            Debug.Log("KSPSerialIO: StopBits One");
             Port.StopBits = StopBits.One;
 
             Port.ReceivedBytesThreshold = 3;
             Port.DataReceived += Port_ReceivedEvent;
 
-            if (!Port.IsOpen && SettingsNStuff.NoDetect) {
-                Debug.Log ("KSPSerialIO: opening port");
-                Port.Open ();
+            if(!Port.IsOpen && SettingsNStuff.NoDetect) {
+                Debug.Log("KSPSerialIO: opening port");
+                Port.Open();
             }
 
         }
 
         //these are copied from the intarwebs, converts struct to byte array
-        private static byte[] StructureToByteArray (object obj)
+        private static byte[] StructureToByteArray(object obj)
         {
-            int len = Marshal.SizeOf (obj);
+            int len = Marshal.SizeOf(obj);
             byte[] arr = new byte[len];
-            IntPtr ptr = Marshal.AllocHGlobal (len);
-            Marshal.StructureToPtr (obj, ptr, true);
-            Marshal.Copy (ptr, arr, 0, len);
-            Marshal.FreeHGlobal (ptr);
+            IntPtr ptr = Marshal.AllocHGlobal(len);
+            Marshal.StructureToPtr(obj, ptr, true);
+            Marshal.Copy(ptr, arr, 0, len);
+            Marshal.FreeHGlobal(ptr);
             return arr;
         }
 
-        private static object ByteArrayToStructure (byte[] bytearray, object obj)
+        private static object ByteArrayToStructure(byte[] bytearray, object obj)
         {
-            int len = Marshal.SizeOf (obj);
+            int len = Marshal.SizeOf(obj);
 
-            IntPtr i = Marshal.AllocHGlobal (len);
+            IntPtr i = Marshal.AllocHGlobal(len);
 
-            Marshal.Copy (bytearray, 0, i, len);
+            Marshal.Copy(bytearray, 0, i, len);
 
-            obj = Marshal.PtrToStructure (i, obj.GetType ());
+            obj = Marshal.PtrToStructure(i, obj.GetType());
 
-            Marshal.FreeHGlobal (i);
+            Marshal.FreeHGlobal(i);
 
             return obj;
         }
@@ -347,30 +347,30 @@ namespace KSPSerialIO
           }
           }
         */
-        void initializeDataPackets ()
+        void initializeDataPackets()
         {
-            VData = new VesselData ();
+            VData = new VesselData();
             VData.id = VDid;
 
-            HPacket = new HandShakePacket ();
+            HPacket = new HandShakePacket();
             HPacket.id = HSPid;
             HPacket.M1 = 1;
             HPacket.M2 = 2;
             HPacket.M3 = 3;
 
-            CPacket = new ControlPacket ();
+            CPacket = new ControlPacket();
 
             VControls.ControlGroup = new Boolean[11];
             VControlsOld.ControlGroup = new Boolean[11];
         }
 
-        void Awake ()
+        void Awake()
         {
             if (DisplayFound || SettingsNStuff.NoDetect) 
             {
-                Debug.Log ("KSPSerialIO: running...");
+                Debug.Log("KSPSerialIO: running...");
                 initializeDataPackets ();
-                Begin ();
+                Begin();
             }
             else
             {
@@ -382,98 +382,98 @@ namespace KSPSerialIO
                 try {
                     String[] realports = SerialPort.GetPortNames ();
 
-                    Begin ();
+                    Begin();
 
-                    String[] names = new string[realports.Length + 1];   // make a new list with 1 extra, we put the default port first
-                    realports.CopyTo (names, 1);
+                        String[] names = new string[realports.Length + 1];   // make a new list with 1 extra, we put the default port first
+                        realports.CopyTo(names, 1);
 
-                    Debug.Log ("KSPSerialIO: Found " + names.Length.ToString () + " serial ports");
+                        Debug.Log("KSPSerialIO: Found " + names.Length.ToString() + " serial ports");
 
-                    //look through all found ports for our display
-                    int j = 0;
+                        //look through all found ports for our display
+                        int j = 0;
 
-                    foreach (string PortName in names) 
-                    {
-                        if (j == 0)  // try default port first
+                        foreach (string PortName in names)
                         {
-                            PortNumber = SettingsNStuff.DefaultPort;
-                            Debug.Log ("KSPSerialIO: trying default port " + PortNumber);
-                        }
-                        else
-                        {
+                            if (j == 0)  // try default port first
+                            {
+                                PortNumber = SettingsNStuff.DefaultPort;
+                                Debug.Log("KSPSerialIO: trying default port " + PortNumber);
+                            }
+                            else
+                            {
                             PortNumber = PortName;
-                            Debug.Log ("KSPSerialIO: trying port " + PortName + " - " + PortNumber);
-                        }
+                                Debug.Log("KSPSerialIO: trying port " + PortName + " - " + PortNumber);
+                            }
 
-                        Port.PortName = PortNumber;
+                            Port.PortName = PortNumber;
 
-                        j++;
+                            j++;
 
-                        if (!Port.IsOpen)
-                        {
-                            try
+                            if (!Port.IsOpen)
                             {
+                                try
+                                {
                                 Debug.Log("KSPSerialIO: Opening port...");
-                                Port.Open ();
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.Log ("KSPSerialIO: Error opening serial port " + Port.PortName + ": " + e.Message);
-                            }
+                                    Port.Open();
+                                }
+                                catch (Exception e)
+                                {
+                                Debug.Log("KSPSerialIO: Error opening serial port " + Port.PortName + ": " + e.Message);
+                                }
 
-                            //secret handshake
-                            if (Port.IsOpen)
-                            {
-                                Thread.Sleep (SettingsNStuff.HandshakeDelay);
-                                sendPacket (HPacket);
+                                //secret handshake
+                                if (Port.IsOpen)
+                                {
+                                    Thread.Sleep(SettingsNStuff.HandshakeDelay);
+                                    sendPacket(HPacket);
 
-                                //wait for reply
-                                int k = 0;
+                                    //wait for reply
+                                    int k = 0;
                                 while (k < 15 && !DisplayFound)
-                                {
+                                    {
                                     ProcessData(); // call to processData to deal with Events not working under Unity
-                                    Thread.Sleep (100);
-                                    sendPacket (HPacket); // send some additinal handshake packets
-                                    k++;
-                                }
+                                        Thread.Sleep(100);
+                                    sendPacket(HPacket); // send some additinal handshake packets
+                                        k++;
+                                    }
 
-                                Port.Close ();
-                                if (DisplayFound)
-                                {
-                                    Debug.Log ("KSPSerialIO: found KSP Display at " + Port.PortName);
-                                    break;
-                                }
-                                else 
-                                {
-                                    Debug.Log ("KSPSerialIO: KSP Display not found");
+                                    Port.Close();
+                                    if (DisplayFound)
+                                    {
+                                        Debug.Log("KSPSerialIO: found KSP Display at " + Port.PortName);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        Debug.Log("KSPSerialIO: KSP Display not found");
+                                    }
                                 }
                             }
+                            else
+                            {
+                                Debug.Log("KSPSerialIO: " + PortNumber + "is already being used.");
+                            }
                         }
-                        else
-                        {
-                            Debug.Log ("KSPSerialIO: " + PortNumber + "is already being used.");
-                        }
-                    }
 
                 }
                 catch (Exception e)
                 {
-                    print (e.Message);
+                    print(e.Message);
                 }
             }
         }
 
-        private string readline ()
+        private string readline()
         {
             string result = null;
             char c;
             int j = 0;
 
-            c = (char)Port.ReadByte ();
+            c = (char)Port.ReadByte();
             while (c != '\n' && j < 255)
             {
                 result += c;
-                c = (char)Port.ReadByte ();
+                c = (char)Port.ReadByte();
                 j++;
             }
             return result;
@@ -483,17 +483,17 @@ namespace KSPSerialIO
         {
             while (Port.BytesToRead > 0)
             {
-                if (processCOM ())
+                if (processCOM())
                 {
                     switch (id)
                     {
-                    case HSPid:
-                        HPacket = (HandShakePacket)ByteArrayToStructure (buffer, HPacket);
-                        Invoke ("HandShake", 0);
+                        case HSPid:
+                            HPacket = (HandShakePacket)ByteArrayToStructure(buffer, HPacket);
+                            Invoke("HandShake", 0);
 
-                        if ((HPacket.M1 == 3) && (HPacket.M2 == 1) && (HPacket.M3 == 4))
-                        {
-                            DisplayFound = true;
+                            if ((HPacket.M1 == 3) && (HPacket.M2 == 1) && (HPacket.M3 == 4))
+                            {
+                                DisplayFound = true;
                         }
                         else
                         {
@@ -533,54 +533,54 @@ namespace KSPSerialIO
                         if ((HPacket.M1 == 3) && (HPacket.M2 == 1) && (HPacket.M3 == 4))
                         {
                             DisplayFound = true;
-                        }
-                        else
-                        {
-                            DisplayFound = false;
-                        }
-                        break;
-                    case Cid:
-                        VesselControls ();
-						//Invoke("VesselControls", 0);
-                        break;
-                    default:
-                        Invoke ("Unimplemented", 0);
-                        break;
+                            }
+                            else
+                            {
+                                DisplayFound = false;
+                            }
+                            break;
+                        case Cid:
+                            VesselControls();
+                            //Invoke("VesselControls", 0);
+                            break;
+                        default:
+                            Invoke("Unimplemented", 0);
+                            break;
                     }
                 }
             }
         }
 
-        private static bool processCOM ()
+        private static bool processCOM()
         {
             byte calc_CS;
 
-            if (rx_len == 0) 
+            if (rx_len == 0)
             {
-                while (Port.ReadByte () != 0xBE) 
+                while (Port.ReadByte() != 0xBE)
                 {
                     if (Port.BytesToRead == 0)
                         return false;
                 }
 
-                if (Port.ReadByte () == 0xEF) 
+                if (Port.ReadByte() == 0xEF)
                 {
-                    rx_len = (byte)Port.ReadByte ();
-                    id = (byte)Port.ReadByte ();
+                    rx_len = (byte)Port.ReadByte();
+                    id = (byte)Port.ReadByte();
                     rx_array_inx = 1;
 
-                    switch (id) 
+                    switch (id)
                     {
-                    case HSPid:
-                        structSize = Marshal.SizeOf (HPacket);
-                        break;
-                    case Cid:
-                        structSize = Marshal.SizeOf (CPacket);
-                        break;
+                        case HSPid:
+                            structSize = Marshal.SizeOf(HPacket);
+                            break;
+                        case Cid:
+                            structSize = Marshal.SizeOf(CPacket);
+                            break;
                     }
 
                     //make sure the binary structs on both Arduino and plugin are the same size.
-                    if (rx_len != structSize || rx_len == 0) 
+                    if (rx_len != structSize || rx_len == 0)
                     {
                         rx_len = 0;
                         return false;
@@ -595,9 +595,9 @@ namespace KSPSerialIO
             {
                 while (Port.BytesToRead > 0 && rx_array_inx <= rx_len)
                 {
-                    buffer [rx_array_inx++] = (byte)Port.ReadByte ();
+                    buffer[rx_array_inx++] = (byte)Port.ReadByte();
                 }
-                buffer [0] = id;
+                buffer[0] = id;
 
                 if (rx_len == (rx_array_inx - 1))
                 {
@@ -606,10 +606,10 @@ namespace KSPSerialIO
                     calc_CS = rx_len;
                     for (int i = 0; i < rx_len; i++)
                     {
-                        calc_CS ^= buffer [i];
+                        calc_CS ^= buffer[i];
                     }
 
-                    if (calc_CS == buffer [rx_array_inx - 1])
+                    if (calc_CS == buffer[rx_array_inx - 1])
                     {//CS good
                         rx_len = 0;
                         rx_array_inx = 1;
@@ -628,14 +628,14 @@ namespace KSPSerialIO
             return false;
         }
 
-        private void HandShake ()
+        private void HandShake()
         {
-            Debug.Log ("KSPSerialIO: Handshake received - " + HPacket.M1.ToString () + HPacket.M2.ToString () + HPacket.M3.ToString ());
+            Debug.Log("KSPSerialIO: Handshake received - " + HPacket.M1.ToString() + HPacket.M2.ToString() + HPacket.M3.ToString());
         }
 
-        private void VesselControls ()
+        private void VesselControls()
         {
-            CPacket = (ControlPacket)ByteArrayToStructure (buffer, CPacket);
+            CPacket = (ControlPacket)ByteArrayToStructure(buffer, CPacket);
 
             VControls.SAS = BitMathByte(CPacket.MainControls, 7);
             VControls.RCS = BitMathByte(CPacket.MainControls, 6);
@@ -657,54 +657,54 @@ namespace KSPSerialIO
 
             for (int j = 1; j <= 10; j++)
             {
-                VControls.ControlGroup [j] = BitMathUshort (CPacket.ControlGroup, j);
+                VControls.ControlGroup[j] = BitMathUshort(CPacket.ControlGroup, j);
             }
 
             ControlReceived = true;
             //Debug.Log("KSPSerialIO: ControlPacket received");
         }
 
-        private Boolean BitMathByte (byte x, int n)
+        private Boolean BitMathByte(byte x, int n)
         {
             return ((x >> n) & 1) == 1;
         }
 
-        private Boolean BitMathUshort (ushort x, int n)
+        private Boolean BitMathUshort(ushort x, int n)
         {
             return ((x >> n) & 1) == 1;
         }
 
-        private void Unimplemented ()
+        private void Unimplemented()
         {
-            Debug.Log ("KSPSerialIO: Packet id unimplemented");
+            Debug.Log("KSPSerialIO: Packet id unimplemented");
         }
 
-        private static void debug ()
+        private static void debug()
         {
-            Debug.Log (Port.BytesToRead.ToString () + "BTR");
+            Debug.Log(Port.BytesToRead.ToString() + "BTR");
         }
 
 
-        public static void ControlStatus (int n, bool s)
+        public static void ControlStatus(int n, bool s)
         {
             if (s)
                 VData.ActionGroups |= (UInt16)(1 << n);       // forces nth bit of x to be 1.  all other bits left alone.
-			else
+            else
                 VData.ActionGroups &= (UInt16)~(1 << n);      // forces nth bit of x to be 0.  all other bits left alone.
         }
 
-        void OnDestroy ()
+        void OnDestroy()
         {
             if (KSPSerialPort.Port.IsOpen)
             {
-                KSPSerialPort.Port.Close ();
+                KSPSerialPort.Port.Close();
                 Port.DataReceived -= Port_ReceivedEvent;
-                Debug.Log ("KSPSerialIO: Port closed");
+                Debug.Log("KSPSerialIO: Port closed");
             }
         }
     }
 
-    [KSPAddon (KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KSPSerialIO : MonoBehaviour
     {
         private double lastUpdate = 0.0f;
@@ -717,73 +717,73 @@ namespace KSPSerialIO
         public static Vessel ActiveVessel;
         public Guid VesselIDOld;
 
-        IOResource TempR = new IOResource ();
+        IOResource TempR = new IOResource();
 
         private ScreenMessageStyle KSPIOScreenStyle = ScreenMessageStyle.UPPER_RIGHT;
 
-        void Awake ()
+        void Awake()
         {
-            ScreenMessages.PostScreenMessage ("IO awake", 10f, KSPIOScreenStyle);
+            ScreenMessages.PostScreenMessage("IO awake", 10f, KSPIOScreenStyle);
             refreshrate = SettingsNStuff.refreshrate;
         }
 
-        void Start ()
+        void Start()
         {
             if (KSPSerialPort.DisplayFound || SettingsNStuff.NoDetect)
             {
                 if (!KSPSerialPort.Port.IsOpen)
                 {
-                    ScreenMessages.PostScreenMessage ("Starting serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
+                    ScreenMessages.PostScreenMessage("Starting serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
 
                     try
                     {
-                        KSPSerialPort.Port.Open ();
-                        Thread.Sleep (SettingsNStuff.HandshakeDelay);
+                        KSPSerialPort.Port.Open();
+                        Thread.Sleep(SettingsNStuff.HandshakeDelay);
                     }
                     catch (Exception e)
                     {
-                        ScreenMessages.PostScreenMessage ("Error opening serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
-                        ScreenMessages.PostScreenMessage (e.Message, 10f, KSPIOScreenStyle);
+                        ScreenMessages.PostScreenMessage("Error opening serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
+                        ScreenMessages.PostScreenMessage(e.Message, 10f, KSPIOScreenStyle);
                     }
                 }
                 else
                 {
                     Debug.Log ("KSPSerialIO: serial port is not open");
-                    ScreenMessages.PostScreenMessage ("Using serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
+                    ScreenMessages.PostScreenMessage("Using serial port " + KSPSerialPort.Port.PortName, 10f, KSPIOScreenStyle);
                 }
 
-                Thread.Sleep (200);
+                Thread.Sleep(200);
                 ActiveVessel = FlightGlobals.ActiveVessel;
                 //sync inputs at start
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Light, KSPSerialPort.VControls.Lights);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Gear, KSPSerialPort.VControls.Gear);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Brakes, KSPSerialPort.VControls.Brakes);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Abort, KSPSerialPort.VControls.Abort);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Stage, KSPSerialPort.VControls.Stage);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Light, KSPSerialPort.VControls.Lights);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Gear, KSPSerialPort.VControls.Gear);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, KSPSerialPort.VControls.Brakes);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Abort, KSPSerialPort.VControls.Abort);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Stage, KSPSerialPort.VControls.Stage);
 
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom01, KSPSerialPort.VControls.ControlGroup [1]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom02, KSPSerialPort.VControls.ControlGroup [2]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom03, KSPSerialPort.VControls.ControlGroup [3]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom04, KSPSerialPort.VControls.ControlGroup [4]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom05, KSPSerialPort.VControls.ControlGroup [5]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom06, KSPSerialPort.VControls.ControlGroup [6]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom07, KSPSerialPort.VControls.ControlGroup [7]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom08, KSPSerialPort.VControls.ControlGroup [8]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom09, KSPSerialPort.VControls.ControlGroup [9]);
-                ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom10, KSPSerialPort.VControls.ControlGroup [10]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom01, KSPSerialPort.VControls.ControlGroup[1]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom02, KSPSerialPort.VControls.ControlGroup[2]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom03, KSPSerialPort.VControls.ControlGroup[3]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom04, KSPSerialPort.VControls.ControlGroup[4]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom05, KSPSerialPort.VControls.ControlGroup[5]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom06, KSPSerialPort.VControls.ControlGroup[6]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom07, KSPSerialPort.VControls.ControlGroup[7]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom08, KSPSerialPort.VControls.ControlGroup[8]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom09, KSPSerialPort.VControls.ControlGroup[9]);
+                ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom10, KSPSerialPort.VControls.ControlGroup[10]);
 
-                ActiveVessel.OnFlyByWire -= new FlightInputCallback (AxisInput);
-                ActiveVessel.OnFlyByWire += new FlightInputCallback (AxisInput);
+                ActiveVessel.OnFlyByWire -= new FlightInputCallback(AxisInput);
+                ActiveVessel.OnFlyByWire += new FlightInputCallback(AxisInput);
             }
             else
             {
-                ScreenMessages.PostScreenMessage ("No display found", 10f, KSPIOScreenStyle);
+                ScreenMessages.PostScreenMessage("No display found", 10f, KSPIOScreenStyle);
             }
         }
 
-        void Update ()
+        void Update()
         {
             if (FlightGlobals.ActiveVessel != null && KSPSerialPort.Port.IsOpen)
             {
@@ -792,13 +792,13 @@ namespace KSPSerialIO
                 //vessel and attache it to the current one
                 if (ActiveVessel.id != FlightGlobals.ActiveVessel.id)
                 {
-                    ActiveVessel.OnFlyByWire -= new FlightInputCallback (AxisInput);
+                    ActiveVessel.OnFlyByWire -= new FlightInputCallback(AxisInput);
                     ActiveVessel = FlightGlobals.ActiveVessel;
-                    ActiveVessel.OnFlyByWire += new FlightInputCallback (AxisInput);
+                    ActiveVessel.OnFlyByWire += new FlightInputCallback(AxisInput);
                     //sync some inputs on vessel switch
-                    ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
-                    ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
-                    Debug.Log ("KSPSerialIO: ActiveVessel changed");
+                    ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
+                    ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
+                    Debug.Log("KSPSerialIO: ActiveVessel changed");
                 }
                 else
                 {
@@ -813,8 +813,8 @@ namespace KSPSerialIO
 
                     lastUpdate = theTime;
 
-                    List<Part> ActiveEngines = new List<Part> ();
-                    ActiveEngines = GetListOfActivatedEngines (ActiveVessel);
+                    List<Part> ActiveEngines = new List<Part>();
+                    ActiveEngines = GetListOfActivatedEngines(ActiveVessel);
 
                     KSPSerialPort.VData.AP = (float)ActiveVessel.orbit.ApA;
                     KSPSerialPort.VData.PE = (float)ActiveVessel.orbit.PeA;
@@ -824,14 +824,14 @@ namespace KSPSerialIO
                     KSPSerialPort.VData.inc = (float)ActiveVessel.orbit.inclination;
                     KSPSerialPort.VData.VVI = (float)ActiveVessel.verticalSpeed;
                     KSPSerialPort.VData.G = (float)ActiveVessel.geeForce;
-                    KSPSerialPort.VData.TAp = (int)Math.Round (ActiveVessel.orbit.timeToAp);
-                    KSPSerialPort.VData.TPe = (int)Math.Round (ActiveVessel.orbit.timeToPe);
+                    KSPSerialPort.VData.TAp = (int)Math.Round(ActiveVessel.orbit.timeToAp);
+                    KSPSerialPort.VData.TPe = (int)Math.Round(ActiveVessel.orbit.timeToPe);
                     KSPSerialPort.VData.Density = (float)ActiveVessel.atmDensity;
                     KSPSerialPort.VData.TrueAnomaly = (float)ActiveVessel.orbit.trueAnomaly;
-                    KSPSerialPort.VData.period = (int)Math.Round (ActiveVessel.orbit.period);
+                    KSPSerialPort.VData.period = (int)Math.Round(ActiveVessel.orbit.period);
 
                     //Debug.Log("KSPSerialIO: 3");
-                    double ASL = ActiveVessel.mainBody.GetAltitude (ActiveVessel.CoM);
+                    double ASL = ActiveVessel.mainBody.GetAltitude(ActiveVessel.CoM);
                     double AGL = (ASL - ActiveVessel.terrainAltitude);
 
                     if (AGL < ASL)
@@ -844,33 +844,33 @@ namespace KSPSerialIO
                     KSPSerialPort.VData.Lat = (float)ActiveVessel.latitude;
                     KSPSerialPort.VData.Lon = (float)ActiveVessel.longitude;
 
-                    TempR = GetResourceTotal (ActiveVessel, "LiquidFuel");
+                    TempR = GetResourceTotal(ActiveVessel, "LiquidFuel");
                     KSPSerialPort.VData.LiquidFuelTot = TempR.Max;
                     KSPSerialPort.VData.LiquidFuel = TempR.Current;
 
-                    KSPSerialPort.VData.LiquidFuelTotS = (float)ProspectForResourceMax ("LiquidFuel", ActiveEngines);
-                    KSPSerialPort.VData.LiquidFuelS = (float)ProspectForResource ("LiquidFuel", ActiveEngines);
+                    KSPSerialPort.VData.LiquidFuelTotS = (float)ProspectForResourceMax("LiquidFuel", ActiveEngines);
+                    KSPSerialPort.VData.LiquidFuelS = (float)ProspectForResource("LiquidFuel", ActiveEngines);
 
-                    TempR = GetResourceTotal (ActiveVessel, "Oxidizer");
+                    TempR = GetResourceTotal(ActiveVessel, "Oxidizer");
                     KSPSerialPort.VData.OxidizerTot = TempR.Max;
                     KSPSerialPort.VData.Oxidizer = TempR.Current;
 
-                    KSPSerialPort.VData.OxidizerTotS = (float)ProspectForResourceMax ("Oxidizer", ActiveEngines);
-                    KSPSerialPort.VData.OxidizerS = (float)ProspectForResource ("Oxidizer", ActiveEngines);
+                    KSPSerialPort.VData.OxidizerTotS = (float)ProspectForResourceMax("Oxidizer", ActiveEngines);
+                    KSPSerialPort.VData.OxidizerS = (float)ProspectForResource("Oxidizer", ActiveEngines);
 
-                    TempR = GetResourceTotal (ActiveVessel, "ElectricCharge");
+                    TempR = GetResourceTotal(ActiveVessel, "ElectricCharge");
                     KSPSerialPort.VData.EChargeTot = TempR.Max;
                     KSPSerialPort.VData.ECharge = TempR.Current;
-                    TempR = GetResourceTotal (ActiveVessel, "MonoPropellant");
+                    TempR = GetResourceTotal(ActiveVessel, "MonoPropellant");
                     KSPSerialPort.VData.MonoPropTot = TempR.Max;
                     KSPSerialPort.VData.MonoProp = TempR.Current;
-                    TempR = GetResourceTotal (ActiveVessel, "IntakeAir");
+                    TempR = GetResourceTotal(ActiveVessel, "IntakeAir");
                     KSPSerialPort.VData.IntakeAirTot = TempR.Max;
                     KSPSerialPort.VData.IntakeAir = TempR.Current;
-                    TempR = GetResourceTotal (ActiveVessel, "SolidFuel");
+                    TempR = GetResourceTotal(ActiveVessel, "SolidFuel");
                     KSPSerialPort.VData.SolidFuelTot = TempR.Max;
                     KSPSerialPort.VData.SolidFuel = TempR.Current;
-                    TempR = GetResourceTotal (ActiveVessel, "XenonGas");
+                    TempR = GetResourceTotal(ActiveVessel, "XenonGas");
                     KSPSerialPort.VData.XenonGasTot = TempR.Max;
                     KSPSerialPort.VData.XenonGas = TempR.Current;
 
@@ -878,10 +878,10 @@ namespace KSPSerialIO
                     deltaT = missionTime - missionTimeOld;
                     missionTimeOld = missionTime;
 
-                    KSPSerialPort.VData.MissionTime = (UInt32)Math.Round (missionTime);
+                    KSPSerialPort.VData.MissionTime = (UInt32)Math.Round(missionTime);
                     KSPSerialPort.VData.deltaTime = (float)deltaT;
 
-                    KSPSerialPort.VData.VOrbit = (float)ActiveVessel.orbit.GetVel ().magnitude;
+                    KSPSerialPort.VData.VOrbit = (float)ActiveVessel.orbit.GetVel().magnitude;
 
                     //Debug.Log("KSPSerialIO: 4");
 
@@ -894,36 +894,36 @@ namespace KSPSerialIO
                         {
                             if (ActiveVessel.patchedConicSolver.maneuverNodes.Count > 0)
                             {
-                                KSPSerialPort.VData.MNTime = (UInt32)Math.Round (ActiveVessel.patchedConicSolver.maneuverNodes [0].UT - Planetarium.GetUniversalTime ());
-                                KSPSerialPort.VData.MNDeltaV = (float)ActiveVessel.patchedConicSolver.maneuverNodes [0].DeltaV.magnitude;
+                                KSPSerialPort.VData.MNTime = (UInt32)Math.Round(ActiveVessel.patchedConicSolver.maneuverNodes[0].UT - Planetarium.GetUniversalTime());
+                                KSPSerialPort.VData.MNDeltaV = (float)ActiveVessel.patchedConicSolver.maneuverNodes[0].DeltaV.magnitude;
                             }
                         }
                     }
 
                     //Debug.Log("KSPSerialIO: 5");
 
-                    Quaternion attitude = updateHeadingPitchRollField (ActiveVessel);
+                    Quaternion attitude = updateHeadingPitchRollField(ActiveVessel);
 
                     KSPSerialPort.VData.Roll = (float)((attitude.eulerAngles.z > 180) ? (attitude.eulerAngles.z - 360.0) : attitude.eulerAngles.z);
                     KSPSerialPort.VData.Pitch = (float)((attitude.eulerAngles.x > 180) ? (360.0 - attitude.eulerAngles.x) : -attitude.eulerAngles.x);
                     KSPSerialPort.VData.Heading = (float)attitude.eulerAngles.y;
 
-                    KSPSerialPort.ControlStatus ((int)enumAG.SAS, ActiveVessel.ActionGroups [KSPActionGroup.SAS]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.RCS, ActiveVessel.ActionGroups [KSPActionGroup.RCS]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Light, ActiveVessel.ActionGroups [KSPActionGroup.Light]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Gear, ActiveVessel.ActionGroups [KSPActionGroup.Gear]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Brakes, ActiveVessel.ActionGroups [KSPActionGroup.Brakes]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Abort, ActiveVessel.ActionGroups [KSPActionGroup.Abort]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom01, ActiveVessel.ActionGroups [KSPActionGroup.Custom01]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom02, ActiveVessel.ActionGroups [KSPActionGroup.Custom02]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom03, ActiveVessel.ActionGroups [KSPActionGroup.Custom03]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom04, ActiveVessel.ActionGroups [KSPActionGroup.Custom04]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom05, ActiveVessel.ActionGroups [KSPActionGroup.Custom05]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom06, ActiveVessel.ActionGroups [KSPActionGroup.Custom06]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom07, ActiveVessel.ActionGroups [KSPActionGroup.Custom07]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom08, ActiveVessel.ActionGroups [KSPActionGroup.Custom08]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom09, ActiveVessel.ActionGroups [KSPActionGroup.Custom09]);
-                    KSPSerialPort.ControlStatus ((int)enumAG.Custom10, ActiveVessel.ActionGroups [KSPActionGroup.Custom10]);
+                    KSPSerialPort.ControlStatus((int)enumAG.SAS, ActiveVessel.ActionGroups[KSPActionGroup.SAS]);
+                    KSPSerialPort.ControlStatus((int)enumAG.RCS, ActiveVessel.ActionGroups[KSPActionGroup.RCS]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Light, ActiveVessel.ActionGroups[KSPActionGroup.Light]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Gear, ActiveVessel.ActionGroups[KSPActionGroup.Gear]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Brakes, ActiveVessel.ActionGroups[KSPActionGroup.Brakes]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Abort, ActiveVessel.ActionGroups[KSPActionGroup.Abort]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom01, ActiveVessel.ActionGroups[KSPActionGroup.Custom01]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom02, ActiveVessel.ActionGroups[KSPActionGroup.Custom02]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom03, ActiveVessel.ActionGroups[KSPActionGroup.Custom03]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom04, ActiveVessel.ActionGroups[KSPActionGroup.Custom04]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom05, ActiveVessel.ActionGroups[KSPActionGroup.Custom05]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom06, ActiveVessel.ActionGroups[KSPActionGroup.Custom06]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom07, ActiveVessel.ActionGroups[KSPActionGroup.Custom07]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom08, ActiveVessel.ActionGroups[KSPActionGroup.Custom08]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom09, ActiveVessel.ActionGroups[KSPActionGroup.Custom09]);
+                    KSPSerialPort.ControlStatus((int)enumAG.Custom10, ActiveVessel.ActionGroups[KSPActionGroup.Custom10]);
 
                     #region debugjunk
                     /*
@@ -949,7 +949,7 @@ namespace KSPSerialIO
                         "   " + KSPSerialPort.VData.LiquidFuel.ToString() + "/" + KSPSerialPort.VData.LiquidFuelTot);
                     */
                     #endregion
-                    KSPSerialPort.sendPacket (KSPSerialPort.VData);
+                    KSPSerialPort.sendPacket(KSPSerialPort.VData);
                 } //end refresh
                 #endregion
                 #region inputs
@@ -975,24 +975,24 @@ namespace KSPSerialIO
                      ", Stage: " + KSPSerialPort.VControls.Stage.ToString());
                      */
 
-                    if (Math.Abs (KSPSerialPort.VControls.Pitch) > SettingsNStuff.SASTol ||
-                    Math.Abs (KSPSerialPort.VControls.Roll) > SettingsNStuff.SASTol ||
-                    Math.Abs (KSPSerialPort.VControls.Yaw) > SettingsNStuff.SASTol)
+                    if (Math.Abs(KSPSerialPort.VControls.Pitch) > SettingsNStuff.SASTol ||
+                        Math.Abs(KSPSerialPort.VControls.Roll) > SettingsNStuff.SASTol ||
+                        Math.Abs(KSPSerialPort.VControls.Yaw) > SettingsNStuff.SASTol)
                     {
-                        ActiveVessel.Autopilot.SAS.ManualOverride (true);
+                        ActiveVessel.Autopilot.SAS.ManualOverride(true);
                         //KSPSerialPort.VControlsOld.Pitch = KSPSerialPort.VControls.Pitch;
                         //KSPSerialPort.VControlsOld.Roll = KSPSerialPort.VControls.Roll;
                         //KSPSerialPort.VControlsOld.Yaw = KSPSerialPort.VControls.Yaw;
                     }
                     else
                     {
-                        ActiveVessel.Autopilot.SAS.ManualOverride (false);
+                        ActiveVessel.Autopilot.SAS.ManualOverride(false);
                     }
 
                     //if (FlightInputHandler.RCSLock != KSPSerialPort.VControls.RCS)
                     if (KSPSerialPort.VControls.RCS != KSPSerialPort.VControlsOld.RCS)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.RCS, KSPSerialPort.VControls.RCS);
                         KSPSerialPort.VControlsOld.RCS = KSPSerialPort.VControls.RCS;
                         //ScreenMessages.PostScreenMessage("RCS: " + KSPSerialPort.VControls.RCS.ToString(), 10f, KSPIOScreenStyle);
                     }
@@ -1000,104 +1000,104 @@ namespace KSPSerialIO
                     //if (ActiveVessel.ctrlState.killRot != KSPSerialPort.VControls.SAS)
                     if (KSPSerialPort.VControls.SAS != KSPSerialPort.VControlsOld.SAS)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, KSPSerialPort.VControls.SAS);
                         KSPSerialPort.VControlsOld.SAS = KSPSerialPort.VControls.SAS;
                         //ScreenMessages.PostScreenMessage("SAS: " + KSPSerialPort.VControls.SAS.ToString(), 10f, KSPIOScreenStyle);
                     }
 
                     if (KSPSerialPort.VControls.Lights != KSPSerialPort.VControlsOld.Lights)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Light, KSPSerialPort.VControls.Lights);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Light, KSPSerialPort.VControls.Lights);
                         KSPSerialPort.VControlsOld.Lights = KSPSerialPort.VControls.Lights;
                     }
 
                     if (KSPSerialPort.VControls.Gear != KSPSerialPort.VControlsOld.Gear)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Gear, KSPSerialPort.VControls.Gear);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Gear, KSPSerialPort.VControls.Gear);
                         KSPSerialPort.VControlsOld.Gear = KSPSerialPort.VControls.Gear;
                     }
 
                     if (KSPSerialPort.VControls.Brakes != KSPSerialPort.VControlsOld.Brakes)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Brakes, KSPSerialPort.VControls.Brakes);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, KSPSerialPort.VControls.Brakes);
                         KSPSerialPort.VControlsOld.Brakes = KSPSerialPort.VControls.Brakes;
                     }
 
                     if (KSPSerialPort.VControls.Abort != KSPSerialPort.VControlsOld.Abort)
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Abort, KSPSerialPort.VControls.Abort);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Abort, KSPSerialPort.VControls.Abort);
                         KSPSerialPort.VControlsOld.Abort = KSPSerialPort.VControls.Abort;
                     }
 
                     if (KSPSerialPort.VControls.Stage != KSPSerialPort.VControlsOld.Stage)
                     {
                         if (KSPSerialPort.VControls.Stage)
-                            Staging.ActivateNextStage ();
+                            Staging.ActivateNextStage();
 
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Stage, KSPSerialPort.VControls.Stage);
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Stage, KSPSerialPort.VControls.Stage);
                         KSPSerialPort.VControlsOld.Stage = KSPSerialPort.VControls.Stage;
                     }
 
                     //================ control groups
 
-                    if (KSPSerialPort.VControls.ControlGroup [1] != KSPSerialPort.VControlsOld.ControlGroup [1])
+                    if (KSPSerialPort.VControls.ControlGroup[1] != KSPSerialPort.VControlsOld.ControlGroup[1])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom01, KSPSerialPort.VControls.ControlGroup [1]);
-                        KSPSerialPort.VControlsOld.ControlGroup [1] = KSPSerialPort.VControls.ControlGroup [1];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom01, KSPSerialPort.VControls.ControlGroup[1]);
+                        KSPSerialPort.VControlsOld.ControlGroup[1] = KSPSerialPort.VControls.ControlGroup[1];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [2] != KSPSerialPort.VControlsOld.ControlGroup [2])
+                    if (KSPSerialPort.VControls.ControlGroup[2] != KSPSerialPort.VControlsOld.ControlGroup[2])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom02, KSPSerialPort.VControls.ControlGroup [2]);
-                        KSPSerialPort.VControlsOld.ControlGroup [2] = KSPSerialPort.VControls.ControlGroup [2];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom02, KSPSerialPort.VControls.ControlGroup[2]);
+                        KSPSerialPort.VControlsOld.ControlGroup[2] = KSPSerialPort.VControls.ControlGroup[2];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [3] != KSPSerialPort.VControlsOld.ControlGroup [3])
+                    if (KSPSerialPort.VControls.ControlGroup[3] != KSPSerialPort.VControlsOld.ControlGroup[3])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom03, KSPSerialPort.VControls.ControlGroup [3]);
-                        KSPSerialPort.VControlsOld.ControlGroup [3] = KSPSerialPort.VControls.ControlGroup [3];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom03, KSPSerialPort.VControls.ControlGroup[3]);
+                        KSPSerialPort.VControlsOld.ControlGroup[3] = KSPSerialPort.VControls.ControlGroup[3];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [4] != KSPSerialPort.VControlsOld.ControlGroup [4])
+                    if (KSPSerialPort.VControls.ControlGroup[4] != KSPSerialPort.VControlsOld.ControlGroup[4])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom04, KSPSerialPort.VControls.ControlGroup [4]);
-                        KSPSerialPort.VControlsOld.ControlGroup [4] = KSPSerialPort.VControls.ControlGroup [4];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom04, KSPSerialPort.VControls.ControlGroup[4]);
+                        KSPSerialPort.VControlsOld.ControlGroup[4] = KSPSerialPort.VControls.ControlGroup[4];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [5] != KSPSerialPort.VControlsOld.ControlGroup [5])
+                    if (KSPSerialPort.VControls.ControlGroup[5] != KSPSerialPort.VControlsOld.ControlGroup[5])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom05, KSPSerialPort.VControls.ControlGroup [5]);
-                        KSPSerialPort.VControlsOld.ControlGroup [5] = KSPSerialPort.VControls.ControlGroup [5];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom05, KSPSerialPort.VControls.ControlGroup[5]);
+                        KSPSerialPort.VControlsOld.ControlGroup[5] = KSPSerialPort.VControls.ControlGroup[5];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [6] != KSPSerialPort.VControlsOld.ControlGroup [6]) 
+                    if (KSPSerialPort.VControls.ControlGroup[6] != KSPSerialPort.VControlsOld.ControlGroup[6])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom06, KSPSerialPort.VControls.ControlGroup [6]);
-                        KSPSerialPort.VControlsOld.ControlGroup [6] = KSPSerialPort.VControls.ControlGroup [6];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom06, KSPSerialPort.VControls.ControlGroup[6]);
+                        KSPSerialPort.VControlsOld.ControlGroup[6] = KSPSerialPort.VControls.ControlGroup[6];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [7] != KSPSerialPort.VControlsOld.ControlGroup [7])
+                    if (KSPSerialPort.VControls.ControlGroup[7] != KSPSerialPort.VControlsOld.ControlGroup[7])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom07, KSPSerialPort.VControls.ControlGroup [7]);
-                        KSPSerialPort.VControlsOld.ControlGroup [7] = KSPSerialPort.VControls.ControlGroup [7];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom07, KSPSerialPort.VControls.ControlGroup[7]);
+                        KSPSerialPort.VControlsOld.ControlGroup[7] = KSPSerialPort.VControls.ControlGroup[7];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [8] != KSPSerialPort.VControlsOld.ControlGroup [8])
+                    if (KSPSerialPort.VControls.ControlGroup[8] != KSPSerialPort.VControlsOld.ControlGroup[8])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom08, KSPSerialPort.VControls.ControlGroup [8]);
-                        KSPSerialPort.VControlsOld.ControlGroup [8] = KSPSerialPort.VControls.ControlGroup [8];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom08, KSPSerialPort.VControls.ControlGroup[8]);
+                        KSPSerialPort.VControlsOld.ControlGroup[8] = KSPSerialPort.VControls.ControlGroup[8];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [9] != KSPSerialPort.VControlsOld.ControlGroup [9])
+                    if (KSPSerialPort.VControls.ControlGroup[9] != KSPSerialPort.VControlsOld.ControlGroup[9])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom09, KSPSerialPort.VControls.ControlGroup [9]);
-                        KSPSerialPort.VControlsOld.ControlGroup [9] = KSPSerialPort.VControls.ControlGroup [9];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom09, KSPSerialPort.VControls.ControlGroup[9]);
+                        KSPSerialPort.VControlsOld.ControlGroup[9] = KSPSerialPort.VControls.ControlGroup[9];
                     }
 
-                    if (KSPSerialPort.VControls.ControlGroup [10] != KSPSerialPort.VControlsOld.ControlGroup [10])
+                    if (KSPSerialPort.VControls.ControlGroup[10] != KSPSerialPort.VControlsOld.ControlGroup[10])
                     {
-                        ActiveVessel.ActionGroups.SetGroup (KSPActionGroup.Custom10, KSPSerialPort.VControls.ControlGroup [10]);
-                        KSPSerialPort.VControlsOld.ControlGroup [10] = KSPSerialPort.VControls.ControlGroup [10];
+                        ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Custom10, KSPSerialPort.VControls.ControlGroup[10]);
+                        KSPSerialPort.VControlsOld.ControlGroup[10] = KSPSerialPort.VControls.ControlGroup[10];
                     }
 
                     KSPSerialPort.ControlReceived = false;
@@ -1106,7 +1106,7 @@ namespace KSPSerialIO
 
 
             }//end if null and same vessel
-			else
+            else
             {
                 //Debug.Log("KSPSerialIO: ActiveVessel not found");
                 //ActiveVessel.OnFlyByWire -= new FlightInputCallback(AxisInput);
@@ -1116,15 +1116,15 @@ namespace KSPSerialIO
         }
 
         #region utilities
-        private IOResource GetResourceTotal (Vessel V, string resourceName)
+        private IOResource GetResourceTotal(Vessel V, string resourceName)
         {
-            IOResource R = new IOResource ();
+            IOResource R = new IOResource();
 
             foreach (Part p in ActiveVessel.parts)
             {
                 foreach (PartResource pr in p.Resources)
                 {
-                    if (pr.resourceName.Equals (resourceName))
+                    if (pr.resourceName.Equals(resourceName))
                     {
                         R.Current += (float)pr.amount;
                         R.Max += (float)pr.maxAmount;
@@ -1152,7 +1152,7 @@ namespace KSPSerialIO
             return R;
         }
 
-        private void AxisInput (FlightCtrlState s)
+        private void AxisInput(FlightCtrlState s)
         {
 			switch (SettingsNStuff.ThrottleEnable)
 			{
@@ -1321,9 +1321,9 @@ namespace KSPSerialIO
         }
 
         // this recursive stage look up stuff stolen and modified from KOS and others
-        public static List<Part> GetListOfActivatedEngines (Vessel vessel)
+        public static List<Part> GetListOfActivatedEngines(Vessel vessel)
         {
-            var retList = new List<Part> ();
+            var retList = new List<Part>();
 
             foreach (var part in vessel.Parts)
             {
@@ -1334,7 +1334,7 @@ namespace KSPSerialIO
                     {
                         if (engineModule.getIgnitionState)
                         {
-                            retList.Add (part);
+                            retList.Add(part);
                         }
                     }
 
@@ -1344,7 +1344,7 @@ namespace KSPSerialIO
                         var engineMod = engineModuleFx;
                         if (engineModuleFx.getIgnitionState)
                         {
-                            retList.Add (part);
+                            retList.Add(part);
                         }
                     }
                 }
@@ -1353,40 +1353,40 @@ namespace KSPSerialIO
             return retList;
         }
 
-        public static double ProspectForResource (String resourceName, List<Part> engines)
+        public static double ProspectForResource(String resourceName, List<Part> engines)
         {
-            List<Part> visited = new List<Part> ();
+            List<Part> visited = new List<Part>();
             double total = 0;
 
             foreach (var part in engines)
             {
-                total += ProspectForResource (resourceName, part, ref visited);
+                total += ProspectForResource(resourceName, part, ref visited);
             }
 
             return total;
         }
 
-        public static double ProspectForResource (String resourceName, Part engine)
+        public static double ProspectForResource(String resourceName, Part engine)
         {
-            List<Part> visited = new List<Part> ();
+            List<Part> visited = new List<Part>();
 
-            return ProspectForResource (resourceName, engine, ref visited);
+            return ProspectForResource(resourceName, engine, ref visited);
         }
 
-        public static double ProspectForResource (String resourceName, Part part, ref List<Part> visited)
+        public static double ProspectForResource(String resourceName, Part part, ref List<Part> visited)
         {
             double ret = 0;
 
-            if (visited.Contains (part))
+            if (visited.Contains(part))
             {
                 return 0;
             }
 
-            visited.Add (part);
+            visited.Add(part);
 
             foreach (PartResource resource in part.Resources)
             {
-                if (resource.resourceName.ToLower () == resourceName.ToLower ())
+                if (resource.resourceName.ToLower() == resourceName.ToLower())
                 {
                     ret += resource.amount;
                 }
@@ -1394,56 +1394,56 @@ namespace KSPSerialIO
 
             foreach (AttachNode attachNode in part.attachNodes)
             {
-                if (attachNode.attachedPart != null//if there is a part attached here
-                && attachNode.nodeType == AttachNode.NodeType.Stack//and the attached part is stacked (rather than surface mounted)
-                && (attachNode.attachedPart.fuelCrossFeed //and the attached part allows fuel flow
-                )
-                && !(part.NoCrossFeedNodeKey.Length > 0//and this part does not forbid fuel flow
-                && attachNode.id.Contains (part.NoCrossFeedNodeKey))) // through this particular node
+                if (attachNode.attachedPart != null //if there is a part attached here
+                        && attachNode.nodeType == AttachNode.NodeType.Stack //and the attached part is stacked (rather than surface mounted)
+                        && (attachNode.attachedPart.fuelCrossFeed //and the attached part allows fuel flow
+                            )
+                        && !(part.NoCrossFeedNodeKey.Length > 0 //and this part does not forbid fuel flow
+                                && attachNode.id.Contains(part.NoCrossFeedNodeKey))) // through this particular node
                 {
 
 
-                    ret += ProspectForResource (resourceName, attachNode.attachedPart, ref visited);
+                    ret += ProspectForResource(resourceName, attachNode.attachedPart, ref visited);
                 }
             }
 
             return ret;
         }
 
-        public static double ProspectForResourceMax (String resourceName, List<Part> engines)
+        public static double ProspectForResourceMax(String resourceName, List<Part> engines)
         {
-            List<Part> visited = new List<Part> ();
+            List<Part> visited = new List<Part>();
             double total = 0;
 
             foreach (var part in engines)
             {
-                total += ProspectForResourceMax (resourceName, part, ref visited);
+                total += ProspectForResourceMax(resourceName, part, ref visited);
             }
 
             return total;
         }
 
-        public static double ProspectForResourceMax (String resourceName, Part engine)
+        public static double ProspectForResourceMax(String resourceName, Part engine)
         {
-            List<Part> visited = new List<Part> ();
+            List<Part> visited = new List<Part>();
 
-            return ProspectForResourceMax (resourceName, engine, ref visited);
+            return ProspectForResourceMax(resourceName, engine, ref visited);
         }
 
-        public static double ProspectForResourceMax (String resourceName, Part part, ref List<Part> visited)
+        public static double ProspectForResourceMax(String resourceName, Part part, ref List<Part> visited)
         {
             double ret = 0;
 
-            if (visited.Contains (part))
+            if (visited.Contains(part))
             {
                 return 0;
             }
 
-            visited.Add (part);
+            visited.Add(part);
 
             foreach (PartResource resource in part.Resources)
             {
-                if (resource.resourceName.ToLower () == resourceName.ToLower ())
+                if (resource.resourceName.ToLower() == resourceName.ToLower())
                 {
                     ret += resource.maxAmount;
                 }
@@ -1451,16 +1451,16 @@ namespace KSPSerialIO
 
             foreach (AttachNode attachNode in part.attachNodes)
             {
-                if (attachNode.attachedPart != null//if there is a part attached here
-                && attachNode.nodeType == AttachNode.NodeType.Stack//and the attached part is stacked (rather than surface mounted)
-                && (attachNode.attachedPart.fuelCrossFeed //and the attached part allows fuel flow
-                )
-                && !(part.NoCrossFeedNodeKey.Length > 0//and this part does not forbid fuel flow
-                && attachNode.id.Contains (part.NoCrossFeedNodeKey))) // through this particular node
+                if (attachNode.attachedPart != null //if there is a part attached here
+                        && attachNode.nodeType == AttachNode.NodeType.Stack //and the attached part is stacked (rather than surface mounted)
+                        && (attachNode.attachedPart.fuelCrossFeed //and the attached part allows fuel flow
+                            )
+                        && !(part.NoCrossFeedNodeKey.Length > 0 //and this part does not forbid fuel flow
+                                && attachNode.id.Contains(part.NoCrossFeedNodeKey))) // through this particular node
                 {
 
 
-                    ret += ProspectForResourceMax (resourceName, attachNode.attachedPart, ref visited);
+                    ret += ProspectForResourceMax(resourceName, attachNode.attachedPart, ref visited);
                 }
             }
 
@@ -1468,32 +1468,32 @@ namespace KSPSerialIO
         }
 
         //Borrowed from MechJeb2
-        private Quaternion updateHeadingPitchRollField (Vessel v)
+        private Quaternion updateHeadingPitchRollField(Vessel v)
         {
             Vector3d CoM, north, up;
             Quaternion rotationSurface;
-            CoM = v.findWorldCenterOfMass ();
+            CoM = v.findWorldCenterOfMass();
             up = (CoM - v.mainBody.position).normalized;
-            north = Vector3d.Exclude (up, (v.mainBody.position + v.mainBody.transform.up * (float)v.mainBody.Radius) - CoM).normalized;
-            rotationSurface = Quaternion.LookRotation (north, up);
-            return Quaternion.Inverse (Quaternion.Euler (90, 0, 0) * Quaternion.Inverse (v.GetTransform ().rotation) * rotationSurface);
+            north = Vector3d.Exclude(up, (v.mainBody.position + v.mainBody.transform.up * (float)v.mainBody.Radius) - CoM).normalized;
+            rotationSurface = Quaternion.LookRotation(north, up);
+            return Quaternion.Inverse(Quaternion.Euler(90, 0, 0) * Quaternion.Inverse(v.GetTransform().rotation) * rotationSurface);
         }
 
         #endregion
 
-        void FixedUpdate ()
+        void FixedUpdate()
         {
         }
 
-        void OnDestroy ()
+        void OnDestroy()
         {
             if (KSPSerialPort.Port.IsOpen)
             {
-                KSPSerialPort.Port.Close ();
-                ScreenMessages.PostScreenMessage ("Port closed", 10f, KSPIOScreenStyle);
+                KSPSerialPort.Port.Close();
+                ScreenMessages.PostScreenMessage("Port closed", 10f, KSPIOScreenStyle);
             }
 
-            ActiveVessel.OnFlyByWire -= new FlightInputCallback (AxisInput);
+            ActiveVessel.OnFlyByWire -= new FlightInputCallback(AxisInput);
         }
     }
 }
